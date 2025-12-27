@@ -1,0 +1,166 @@
+# ============================================================
+# Library Gateway Service - 应用配置
+# ============================================================
+
+server:
+  port: ${SERVER_PORT:8080}
+
+spring:
+  application:
+    name: library-gateway
+  config:
+    import: optional:nacos:library-gateway.yaml
+  main:
+    web-application-type: reactive
+  
+  cloud:
+    # ========================================
+    # Nacos 配置
+    # ========================================
+    nacos:
+      discovery:
+        server-addr: ${NACOS_SERVER_ADDR:127.0.0.1:8848}
+        namespace: ${NACOS_NAMESPACE:}
+        group: ${NACOS_GROUP:DEFAULT_GROUP}
+    
+    # ========================================
+    # Gateway 路由配置
+    # ========================================
+    gateway:
+      # 全局默认过滤器
+      default-filters:
+        - DedupeResponseHeader=Access-Control-Allow-Origin Access-Control-Allow-Credentials, RETAIN_FIRST
+      
+      # 路由规则
+      routes:
+        # ----------------------------------------
+        # Auth Service 路由
+        # ----------------------------------------
+        - id: auth-service
+          uri: lb://library-auth
+          predicates:
+            - Path=/api/auth/**,/api/users/**
+          filters:
+            - StripPrefix=1
+            - name: CircuitBreaker
+              args:
+                name: authService
+                fallbackUri: forward:/fallback
+        
+        # ----------------------------------------
+        # Book Service 路由
+        # ----------------------------------------
+        - id: book-service
+          uri: lb://library-book
+          predicates:
+            - Path=/api/books/**,/api/categories/**
+          filters:
+            - StripPrefix=1
+            - name: CircuitBreaker
+              args:
+                name: bookService
+                fallbackUri: forward:/fallback
+        
+        # ----------------------------------------
+        # Borrow Service 路由
+        # ----------------------------------------
+        - id: borrow-service
+          uri: lb://library-borrow
+          predicates:
+            - Path=/api/borrow/**,/api/return/**,/api/renew/**
+          filters:
+            - StripPrefix=1
+            - name: CircuitBreaker
+              args:
+                name: borrowService
+                fallbackUri: forward:/fallback
+      
+# ========================================
+# JWT 配置
+# ========================================
+jwt:
+  # JWT 签名密钥（生产环境请使用环境变量覆盖）
+  secret: ${JWT_SECRET:LibraryManagementSystemSecretKey2024!@#$%^&*()}
+  # Token 请求头名称
+  header: Authorization
+  # Token 前缀
+  prefix: "Bearer "
+  # 白名单路径（不需要认证）
+  whitelist:
+    - /api/auth/login
+    - /api/auth/register
+    - /api/auth/logout
+    - /api/auth/verify
+    - /actuator/**
+    - /fallback
+
+# ========================================
+# Resilience4j 配置
+# ========================================
+resilience4j:
+  circuitbreaker:
+    configs:
+      default:
+        # 滑动窗口类型
+        sliding-window-type: COUNT_BASED
+        # 滑动窗口大小
+        sliding-window-size: 10
+        # 最小调用次数
+        minimum-number-of-calls: 5
+        # 失败率阈值
+        failure-rate-threshold: 50
+        # 半开状态允许调用次数
+        permitted-number-of-calls-in-half-open-state: 3
+        # 从开启到半开的等待时间
+        wait-duration-in-open-state: 10s
+        # 自动从半开转换为开启
+        automatic-transition-from-open-to-half-open-enabled: true
+    instances:
+      authService:
+        base-config: default
+        wait-duration-in-open-state: 5s
+      bookService:
+        base-config: default
+        wait-duration-in-open-state: 10s
+      borrowService:
+        base-config: default
+        wait-duration-in-open-state: 15s
+  
+  timelimiter:
+    configs:
+      default:
+        # 超时时间
+        timeout-duration: 10s
+    instances:
+      authService:
+        timeout-duration: 5s
+      bookService:
+        timeout-duration: 10s
+      borrowService:
+        timeout-duration: 15s
+
+# ========================================
+# Actuator 监控配置
+# ========================================
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,metrics,circuitbreakers,gateway
+  endpoint:
+    health:
+      show-details: always
+    gateway:
+      enabled: true
+
+# ========================================
+# 日志配置
+# ========================================
+logging:
+  level:
+    root: INFO
+    com.library.gateway: DEBUG
+    org.springframework.cloud.gateway: DEBUG
+    io.github.resilience4j: DEBUG
+  pattern:
+    console: "%d{yyyy-MM-dd HH:mm:ss.SSS} [%thread] %-5level %logger{36} - %msg%n"

@@ -1,0 +1,210 @@
+version: '3.8'
+
+services:
+  # MySQL 数据库
+  mysql:
+    image: mysql:8.4
+    container_name: library-mysql
+    restart: unless-stopped
+    environment:
+      MYSQL_ROOT_PASSWORD: root123456
+      MYSQL_ROOT_HOST: '%'
+      TZ: Asia/Shanghai
+    ports:
+      - "3308:3306"
+    volumes:
+      - mysql-data:/var/lib/mysql
+      - ./docs/sql:/docker-entrypoint-initdb.d
+    command:
+      - --character-set-server=utf8mb4
+      - --collation-server=utf8mb4_unicode_ci
+    networks:
+      - library-network
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # Nacos 服务注册与配置中心
+  nacos:
+    image: nacos/nacos-server:v3.1.0
+    container_name: library-nacos
+    restart: unless-stopped
+    environment:
+      MODE: standalone
+      PREFER_HOST_MODE: hostname
+      NACOS_AUTH_TOKEN: SecretKey012345678901234567890123456789012345678901234567
+      NACOS_AUTH_IDENTITY_KEY: nacos_identity_key
+      NACOS_AUTH_IDENTITY_VALUE: nacos_identity_value
+      SPRING_DATASOURCE_PLATFORM: mysql
+      MYSQL_SERVICE_HOST: mysql
+      MYSQL_SERVICE_PORT: 3306
+      MYSQL_SERVICE_DB_NAME: nacos_config
+      MYSQL_SERVICE_USER: root
+      MYSQL_SERVICE_PASSWORD: root123456
+      MYSQL_SERVICE_DB_PARAM: characterEncoding=utf8&connectTimeout=1000&socketTimeout=3000&autoReconnect=true&useSSL=false&allowPublicKeyRetrieval=true
+      JVM_XMS: 512m
+      JVM_XMX: 512m
+      JVM_XMN: 256m
+      TZ: Asia/Shanghai
+    ports:
+      - "8848:8848"
+      - "9848:9848"
+      - "8858:8080"
+    volumes:
+      - nacos-logs:/home/nacos/logs
+    networks:
+      - library-network
+    depends_on:
+      mysql:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8080/"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+
+  # Gateway 网关服务
+  gateway:
+    build:
+      context: .
+      dockerfile: library-gateway/Dockerfile
+    container_name: library-gateway
+    restart: unless-stopped
+    environment:
+      SPRING_PROFILES_ACTIVE: docker
+      NACOS_SERVER_ADDR: nacos:8848
+      JWT_SECRET: LibrarySystemSecretKey2024ForJWTTokenGenerationAndValidation
+      TZ: Asia/Shanghai
+    ports:
+      - "8080:8080"
+    volumes:
+      - gateway-logs:/app/logs
+    networks:
+      - library-network
+    depends_on:
+      nacos:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "wget", "--spider", "-q", "http://localhost:8080/actuator/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  # Auth 认证服务
+  auth-service:
+    build:
+      context: .
+      dockerfile: library-auth/Dockerfile
+    container_name: library-auth
+    restart: unless-stopped
+    environment:
+      SPRING_PROFILES_ACTIVE: docker
+      NACOS_SERVER_ADDR: nacos:8848
+      DB_HOST: mysql
+      DB_PORT: 3306
+      DB_USERNAME: root
+      DB_PASSWORD: root123456
+      JWT_SECRET: LibrarySystemSecretKey2024ForJWTTokenGenerationAndValidation
+      TZ: Asia/Shanghai
+    ports:
+      - "8081:8081"
+    volumes:
+      - auth-logs:/app/logs
+    networks:
+      - library-network
+    depends_on:
+      nacos:
+        condition: service_healthy
+      mysql:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "wget", "--spider", "-q", "http://localhost:8081/actuator/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  # Book 图书服务
+  book-service:
+    build:
+      context: .
+      dockerfile: library-book/Dockerfile
+    container_name: library-book
+    restart: unless-stopped
+    environment:
+      SPRING_PROFILES_ACTIVE: docker
+      NACOS_SERVER_ADDR: nacos:8848
+      DB_HOST: mysql
+      DB_PORT: 3306
+      DB_USERNAME: root
+      DB_PASSWORD: root123456
+      TZ: Asia/Shanghai
+    ports:
+      - "8082:8082"
+    volumes:
+      - book-logs:/app/logs
+    networks:
+      - library-network
+    depends_on:
+      nacos:
+        condition: service_healthy
+      mysql:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "wget", "--spider", "-q", "http://localhost:8082/actuator/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  # Borrow 借阅服务
+  borrow-service:
+    build:
+      context: .
+      dockerfile: library-borrow/Dockerfile
+    container_name: library-borrow
+    restart: unless-stopped
+    environment:
+      SPRING_PROFILES_ACTIVE: docker
+      NACOS_SERVER_ADDR: nacos:8848
+      DB_HOST: mysql
+      DB_PORT: 3306
+      DB_USERNAME: root
+      DB_PASSWORD: root123456
+      TZ: Asia/Shanghai
+    ports:
+      - "8083:8083"
+    volumes:
+      - borrow-logs:/app/logs
+    networks:
+      - library-network
+    depends_on:
+      nacos:
+        condition: service_healthy
+      mysql:
+        condition: service_healthy
+      book-service:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "wget", "--spider", "-q", "http://localhost:8083/actuator/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+networks:
+  library-network:
+    driver: bridge
+
+volumes:
+  mysql-data:
+    driver: local
+  nacos-logs:
+    driver: local
+  gateway-logs:
+    driver: local
+  auth-logs:
+    driver: local
+  book-logs:
+    driver: local
+  borrow-logs:
+    driver: local

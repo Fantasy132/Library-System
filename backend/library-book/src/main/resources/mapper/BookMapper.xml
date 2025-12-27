@@ -1,0 +1,129 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.library.book.mapper.BookMapper">
+
+    <!-- 图书详情结果映射 -->
+    <resultMap id="BookResponseMap" type="com.library.book.dto.BookResponse">
+        <id property="id" column="id"/>
+        <result property="isbn" column="isbn"/>
+        <result property="title" column="title"/>
+        <result property="author" column="author"/>
+        <result property="publisher" column="publisher"/>
+        <result property="publishDate" column="publish_date"/>
+        <result property="categoryId" column="category_id"/>
+        <result property="categoryName" column="category_name"/>
+        <result property="price" column="price"/>
+        <result property="totalStock" column="total_stock"/>
+        <result property="availableStock" column="available_stock"/>
+        <result property="coverUrl" column="cover_url"/>
+        <result property="description" column="description"/>
+        <result property="status" column="status"/>
+        <result property="createTime" column="create_time"/>
+        <result property="updateTime" column="update_time"/>
+    </resultMap>
+
+    <!-- 分页查询图书 -->
+    <select id="selectBookPage" resultMap="BookResponseMap">
+        SELECT
+            b.id,
+            b.isbn,
+            b.title,
+            b.author,
+            b.publisher,
+            b.publish_date,
+            b.category_id,
+            c.name AS category_name,
+            b.price,
+            b.total_stock,
+            b.available_stock,
+            b.cover_url,
+            b.description,
+            b.status,
+            b.create_time,
+            b.update_time
+        FROM t_book b
+        LEFT JOIN t_category c ON b.category_id = c.id AND c.deleted = 0
+        <where>
+            b.deleted = 0
+            <if test="query.keyword != null and query.keyword != ''">
+                AND (
+                    b.title LIKE CONCAT('%', #{query.keyword}, '%')
+                    OR b.author LIKE CONCAT('%', #{query.keyword}, '%')
+                    OR b.isbn LIKE CONCAT('%', #{query.keyword}, '%')
+                )
+            </if>
+            <if test="query.categoryId != null">
+                AND b.category_id = #{query.categoryId}
+            </if>
+            <if test="query.author != null and query.author != ''">
+                AND b.author LIKE CONCAT('%', #{query.author}, '%')
+            </if>
+            <if test="query.publisher != null and query.publisher != ''">
+                AND b.publisher LIKE CONCAT('%', #{query.publisher}, '%')
+            </if>
+            <if test="query.status != null">
+                AND b.status = #{query.status}
+            </if>
+            <if test="query.hasStock != null and query.hasStock == true">
+                AND b.available_stock > 0
+            </if>
+        </where>
+        ORDER BY b.create_time DESC
+    </select>
+
+    <!-- 查询图书总数 -->
+    <select id="countBooks" resultType="java.lang.Long">
+        SELECT COUNT(DISTINCT b.id)
+        FROM t_book b
+        <where>
+            b.deleted = 0
+            <if test="query.keyword != null and query.keyword != ''">
+                AND (
+                    b.title LIKE CONCAT('%', #{query.keyword}, '%')
+                    OR b.author LIKE CONCAT('%', #{query.keyword}, '%')
+                    OR b.isbn LIKE CONCAT('%', #{query.keyword}, '%')
+                )
+            </if>
+            <if test="query.categoryId != null">
+                AND b.category_id = #{query.categoryId}
+            </if>
+            <if test="query.author != null and query.author != ''">
+                AND b.author LIKE CONCAT('%', #{query.author}, '%')
+            </if>
+            <if test="query.publisher != null and query.publisher != ''">
+                AND b.publisher LIKE CONCAT('%', #{query.publisher}, '%')
+            </if>
+            <if test="query.status != null">
+                AND b.status = #{query.status}
+            </if>
+            <if test="query.hasStock != null and query.hasStock == true">
+                AND b.available_stock > 0
+            </if>
+        </where>
+    </select>
+
+    <!-- 查询图书详情 -->
+    <select id="selectBookDetail" resultMap="BookResponseMap">
+        SELECT
+            b.id,
+            b.isbn,
+            b.title,
+            b.author,
+            b.publisher,
+            b.publish_date,
+            b.category_id,
+            c.name AS category_name,
+            b.price,
+            b.total_stock,
+            b.available_stock,
+            b.cover_url,
+            b.description,
+            b.status,
+            b.create_time,
+            b.update_time
+        FROM t_book b
+        LEFT JOIN t_category c ON b.category_id = c.id AND c.deleted = 0
+        WHERE b.id = #{id} AND b.deleted = 0
+    </select>
+
+</mapper>

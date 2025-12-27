@@ -1,0 +1,23 @@
+spring:
+  application:
+    name: auth-service
+  cloud:
+    nacos:
+      # Nacos 服务地址
+      server-addr: ${NACOS_SERVER_ADDR:localhost:8848}
+      # 配置中心
+      config:
+        server-addr: ${NACOS_SERVER_ADDR:localhost:8848}
+        namespace: public
+        group: DEFAULT_GROUP
+        file-extension: yaml
+        # 共享配置
+        shared-configs:
+          - data-id: common.yaml
+            group: DEFAULT_GROUP
+            refresh: true
+      # 服务发现
+      discovery:
+        server-addr: ${NACOS_SERVER_ADDR:localhost:8848}
+        namespace: public
+        group: DEFAULT_GROUP
