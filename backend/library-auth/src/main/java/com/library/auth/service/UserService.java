@@ -69,6 +69,24 @@ public interface UserService extends IService<User> {
     boolean updateUserStatus(Long userId, Integer status);
 
     /**
+     * 更新用户密码（管理员重置）
+     *
+     * @param userId      用户ID
+     * @param newPassword 新密码
+     * @return 是否成功
+     */
+    boolean updatePassword(Long userId, String newPassword);
+
+    /**
+     * 更新用户角色
+     *
+     * @param userId  用户ID
+     * @param role    新角色
+     * @return 是否成功
+     */
+    boolean updateRole(Long userId, String role);
+
+    /**
      * 将 User 实体转换为 UserDTO
      *
      * @param user 用户实体

@@ -71,17 +71,10 @@ public class AuthGlobalFilter implements GlobalFilter, Ordered {
         String path = request.getURI().getPath();
         HttpMethod method = request.getMethod();
 
-        System.out.println("=== Gateway 收到请求: " + method + " " + path);
-        System.out.println("=== 白名单配置: " + jwtProperties.getWhitelist());
-        
-        log.info("Gateway 收到请求: {} {}", method, path);
-        log.info("当前白名单配置: {}", jwtProperties.getWhitelist());
+        log.debug("Gateway 收到请求: {} {}", method, path);
 
         // 检查是否是白名单路径
-        boolean isWhitelist = isWhitelistPath(path, method);
-        System.out.println("=== 白名单判断结果: " + isWhitelist);
-        if (isWhitelist) {
-            System.out.println("=== 白名单路径放行: " + path);
+        if (isWhitelistPath(path, method)) {
             log.debug("白名单路径放行: {}", path);
             return chain.filter(exchange);
         }
@@ -131,13 +124,9 @@ public class AuthGlobalFilter implements GlobalFilter, Ordered {
      * @return true-是白名单路径
      */
     private boolean isWhitelistPath(String path, HttpMethod method) {
-        log.info("检查路径是否在白名单: path={}, method={}", path, method);
-        
         // 配置文件中的白名单
         for (String pattern : jwtProperties.getWhitelist()) {
-            log.info("匹配白名单pattern: {}", pattern);
             if (pathMatcher.match(pattern, path)) {
-                log.info("匹配成功，路径 {} 在配置白名单中", path);
                 return true;
             }
         }
@@ -147,7 +136,6 @@ public class AuthGlobalFilter implements GlobalFilter, Ordered {
         if (pathMatcher.match("/api/auth/login", path) ||
             pathMatcher.match("/api/auth/register", path) ||
             pathMatcher.match("/api/auth/logout", path)) {
-            log.info("匹配成功，路径 {} 在内置白名单中（login/register/logout）", path);
             return true;
         }
 

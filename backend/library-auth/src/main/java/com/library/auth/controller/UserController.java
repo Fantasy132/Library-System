@@ -1,11 +1,14 @@
 package com.library.auth.controller;
 
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
+import com.library.auth.dto.UpdatePasswordRequest;
+import com.library.auth.dto.UpdateRoleRequest;
 import com.library.auth.dto.UserDTO;
 import com.library.auth.entity.User;
 import com.library.auth.service.UserService;
 import com.library.common.constant.CommonConstants;
 import com.library.common.result.Result;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.web.bind.annotation.*;
@@ -29,7 +32,7 @@ public class UserController {
      * @return 用户信息
      */
     @GetMapping("/{userId}")
-    public Result<UserDTO> getUserById(@PathVariable Long userId) {
+    public Result<UserDTO> getUserById(@PathVariable(name = "userId") Long userId) {
         log.debug("获取用户信息: userId={}", userId);
         UserDTO userDTO = userService.getUserById(userId);
         return Result.success(userDTO);
@@ -43,7 +46,7 @@ public class UserController {
      * @return 是否有效
      */
     @GetMapping("/{userId}/validate")
-    public Result<Boolean> validateUser(@PathVariable Long userId) {
+    public Result<Boolean> validateUser(@PathVariable(name = "userId") Long userId) {
         log.debug("校验用户有效性: userId={}", userId);
         boolean valid = userService.validateUser(userId);
         return Result.success(valid);
@@ -59,9 +62,9 @@ public class UserController {
      */
     @GetMapping
     public Result<Page<UserDTO>> getUserPage(
-            @RequestParam(defaultValue = "1") Integer pageNum,
-            @RequestParam(defaultValue = "10") Integer pageSize,
-            @RequestParam(required = false) String keyword) {
+            @RequestParam(name = "pageNum", defaultValue = "1") Integer pageNum,
+            @RequestParam(name = "pageSize", defaultValue = "10") Integer pageSize,
+            @RequestParam(name = "keyword", required = false) String keyword) {
         log.debug("分页查询用户: pageNum={}, pageSize={}, keyword={}", pageNum, pageSize, keyword);
         
         // 限制最大页大小
@@ -83,11 +86,43 @@ public class UserController {
      */
     @PutMapping("/{userId}/status")
     public Result<Void> updateUserStatus(
-            @PathVariable Long userId,
-            @RequestParam Integer status) {
+            @PathVariable(name = "userId") Long userId,
+            @RequestParam(name = "status") Integer status) {
         log.info("更新用户状态: userId={}, status={}", userId, status);
         userService.updateUserStatus(userId, status);
         return Result.success("用户状态更新成功", null);
+    }
+
+    /**
+     * 修改用户密码（管理员重置密码）
+     *
+     * @param userId  用户ID
+     * @param request 密码修改请求
+     * @return 成功响应
+     */
+    @PutMapping("/{userId}/password")
+    public Result<Void> updatePassword(
+            @PathVariable(name = "userId") Long userId,
+            @Valid @RequestBody UpdatePasswordRequest request) {
+        log.info("管理员重置用户密码: userId={}", userId);
+        userService.updatePassword(userId, request.getNewPassword());
+        return Result.success("密码修改成功", null);
+    }
+
+    /**
+     * 修改用户角色
+     *
+     * @param userId  用户ID
+     * @param request 角色修改请求
+     * @return 成功响应
+     */
+    @PutMapping("/{userId}/role")
+    public Result<Void> updateRole(
+            @PathVariable(name = "userId") Long userId,
+            @Valid @RequestBody UpdateRoleRequest request) {
+        log.info("修改用户角色: userId={}, role={}", userId, request.getRole());
+        userService.updateRole(userId, request.getRole());
+        return Result.success("角色修改成功", null);
     }
 
     /**
