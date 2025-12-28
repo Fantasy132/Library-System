@@ -195,18 +195,22 @@ const AdminPanel: React.FC = () => {
       title: '书名',
       dataIndex: 'title',
       key: 'title',
+      width: 200,
+      ellipsis: true,
     },
     {
       title: '作者',
       dataIndex: 'author',
       key: 'author',
       width: 120,
+      ellipsis: true,
     },
     {
       title: '出版社',
       dataIndex: 'publisher',
       key: 'publisher',
       width: 150,
+      ellipsis: true,
     },
     {
       title: '价格',
@@ -266,11 +270,14 @@ const AdminPanel: React.FC = () => {
       dataIndex: 'username',
       key: 'username',
       width: 120,
+      ellipsis: true,
     },
     {
       title: '书名',
       dataIndex: 'bookTitle',
       key: 'bookTitle',
+      width: 200,
+      ellipsis: true,
     },
     {
       title: 'ISBN',
@@ -385,12 +392,14 @@ const AdminPanel: React.FC = () => {
       dataIndex: 'username',
       key: 'username',
       width: 120,
+      ellipsis: true,
     },
     {
       title: '邮箱',
       dataIndex: 'email',
       key: 'email',
       width: 180,
+      ellipsis: true,
     },
     {
       title: '手机号',
@@ -403,6 +412,7 @@ const AdminPanel: React.FC = () => {
       dataIndex: 'realName',
       key: 'realName',
       width: 100,
+      ellipsis: true,
     },
     {
       title: '角色',
@@ -543,33 +553,45 @@ const AdminPanel: React.FC = () => {
           <Form.Item
             name="isbn"
             label="ISBN"
-            rules={[{ required: true, message: '请输入ISBN' }]}
+            rules={[
+              { required: true, message: '请输入ISBN' },
+              { max: 20, message: 'ISBN最多20个字符' },
+            ]}
           >
-            <Input placeholder="978-7-111-12345-6" />
+            <Input placeholder="978-7-111-12345-6" maxLength={20} showCount />
           </Form.Item>
 
           <Form.Item
             name="title"
             label="书名"
-            rules={[{ required: true, message: '请输入书名' }]}
+            rules={[
+              { required: true, message: '请输入书名' },
+              { max: 100, message: '书名最多100个字符' },
+            ]}
           >
-            <Input />
+            <Input maxLength={100} showCount />
           </Form.Item>
 
           <Form.Item
             name="author"
             label="作者"
-            rules={[{ required: true, message: '请输入作者' }]}
+            rules={[
+              { required: true, message: '请输入作者' },
+              { max: 50, message: '作者最多50个字符' },
+            ]}
           >
-            <Input />
+            <Input maxLength={50} showCount />
           </Form.Item>
 
           <Form.Item
             name="publisher"
             label="出版社"
-            rules={[{ required: true, message: '请输入出版社' }]}
+            rules={[
+              { required: true, message: '请输入出版社' },
+              { max: 100, message: '出版社最多100个字符' },
+            ]}
           >
-            <Input />
+            <Input maxLength={100} showCount />
           </Form.Item>
 
           <Form.Item
@@ -577,7 +599,10 @@ const AdminPanel: React.FC = () => {
             label="出版日期"
             rules={[{ required: true, message: '请选择出版日期' }]}
           >
-            <DatePicker style={{ width: '100%' }} />
+            <DatePicker 
+              style={{ width: '100%' }} 
+              disabledDate={(current) => current && current.isAfter(dayjs(), 'day')}
+            />
           </Form.Item>
 
           <Form.Item
@@ -601,6 +626,7 @@ const AdminPanel: React.FC = () => {
           >
             <InputNumber
               min={0}
+              max={99999.99}
               precision={2}
               style={{ width: '100%' }}
               addonBefore="¥"
@@ -612,15 +638,15 @@ const AdminPanel: React.FC = () => {
             label="总库存"
             rules={[{ required: true, message: '请输入总库存' }]}
           >
-            <InputNumber min={0} style={{ width: '100%' }} />
+            <InputNumber min={0} max={9999} style={{ width: '100%' }} />
           </Form.Item>
 
           <Form.Item name="coverUrl" label="封面URL">
-            <Input placeholder="https://example.com/cover.jpg" />
+            <Input placeholder="https://example.com/cover.jpg" maxLength={255} showCount />
           </Form.Item>
 
           <Form.Item name="description" label="简介">
-            <TextArea rows={4} />
+            <TextArea rows={4} maxLength={500} showCount />
           </Form.Item>
 
           <Form.Item

@@ -110,6 +110,8 @@ const MyBorrows: React.FC = () => {
       title: '书名',
       dataIndex: 'bookTitle',
       key: 'bookTitle',
+      width: 200,
+      ellipsis: true,
     },
     {
       title: 'ISBN',

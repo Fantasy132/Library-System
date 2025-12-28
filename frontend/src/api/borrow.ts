@@ -24,8 +24,14 @@ export const renewBook = (id: number, data: RenewRequest): Promise<ApiResponse<B
 };
 
 // 查询我的借阅
-export const getMyBorrows = (): Promise<ApiResponse<PageResponse<BorrowRecord>>> => {
-  return request.get('/api/borrow/my');
+export const getMyBorrows = (params?: { page?: number; size?: number; status?: number }): Promise<ApiResponse<PageResponse<BorrowRecord>>> => {
+  return request.get('/api/borrow/my', {
+    params: {
+      pageNum: params?.page || 1,
+      pageSize: params?.size || 10,
+      status: params?.status,
+    },
+  });
 };
 
 // 查询借阅记录（分页）

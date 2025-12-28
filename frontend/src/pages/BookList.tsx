@@ -41,12 +41,31 @@ const BookList: React.FC = () => {
   const [borrowDays, setBorrowDays] = useState(30);
   const [customDays, setCustomDays] = useState<number | undefined>();
   const [isCustomDays, setIsCustomDays] = useState(false);
-  const { isAdmin } = useAuth();
+  const [borrowedBookIds, setBorrowedBookIds] = useState<Set<number>>(new Set());
+  const { isAdmin, user } = useAuth();
 
   useEffect(() => {
     fetchBooks();
     fetchCategories();
   }, [page, pageSize, keyword, categoryId]);
+
+  // 获取当前用户已借阅的书籍
+  useEffect(() => {
+    if (user) {
+      fetchBorrowedBooks();
+    }
+  }, [user]);
+
+  const fetchBorrowedBooks = async () => {
+    try {
+      // 获取用户借阅中的记录（状态0=借阅中）
+      const response = await borrowApi.getMyBorrows({ page: 1, size: 100, status: 0 });
+      const borrowedIds = new Set<number>(response.data.records.map((record: any) => record.bookId));
+      setBorrowedBookIds(borrowedIds);
+    } catch (error) {
+      console.error('获取借阅记录失败:', error);
+    }
+  };
 
   const fetchBooks = async () => {
     setLoading(true);
@@ -122,6 +141,7 @@ const BookList: React.FC = () => {
       setIsCustomDays(false);
       setCustomDays(undefined);
       fetchBooks();
+      fetchBorrowedBooks(); // 刷新已借阅列表
     } catch (error) {
       // 错误消息已在request拦截器中显示
     }
@@ -139,21 +159,25 @@ const BookList: React.FC = () => {
       title: '书名',
       dataIndex: 'title',
       key: 'title',
+      width: 200,
+      ellipsis: true,
       render: (text, record) => (
-        <a onClick={() => showBookDetail(record)}>{text}</a>
+        <a onClick={() => showBookDetail(record)} title={text}>{text}</a>
       ),
     },
     {
       title: '作者',
       dataIndex: 'author',
       key: 'author',
-      width: 150,
+      width: 120,
+      ellipsis: true,
     },
     {
       title: '出版社',
       dataIndex: 'publisher',
       key: 'publisher',
       width: 150,
+      ellipsis: true,
     },
     {
       title: '分类',
@@ -193,18 +217,25 @@ const BookList: React.FC = () => {
       title: '操作',
       key: 'action',
       width: 150,
-      render: (_, record) => (
-        <Space>
-          <Button type="link" size="small" onClick={() => showBookDetail(record)}>
-            详情
-          </Button>
-          {record.availableStock > 0 && (
-            <Button type="primary" size="small" onClick={() => handleBorrow(record)}>
-              借阅
+      render: (_, record) => {
+        const isBorrowed = borrowedBookIds.has(record.id);
+        return (
+          <Space>
+            <Button type="link" size="small" onClick={() => showBookDetail(record)}>
+              详情
             </Button>
-          )}
-        </Space>
-      ),
+            {isBorrowed ? (
+              <Button type="primary" size="small" disabled>
+                已借阅
+              </Button>
+            ) : record.availableStock > 0 ? (
+              <Button type="primary" size="small" onClick={() => handleBorrow(record)}>
+                借阅
+              </Button>
+            ) : null}
+          </Space>
+        );
+      },
     },
   ];
 
