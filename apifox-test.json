@@ -1,0 +1,546 @@
+{
+  "info": {
+    "name": "图书借阅管理系统 API 测试",
+    "description": "完整的图书借阅管理系统API测试集合\n\n【使用说明】\n1. 导入此文件到 Apifox\n2. 设置环境变量 baseUrl = http://localhost:8080\n3. 先执行「管理员登录」接口获取 Token\n4. 后续接口会自动携带 Token\n\n【默认账号】\n- 管理员: admin / admin123\n- 普通用户: user1 / user123",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "http://localhost:8080",
+      "type": "string"
+    },
+    {
+      "key": "accessToken",
+      "value": "",
+      "type": "string"
+    }
+  ],
+  "auth": {
+    "type": "bearer",
+    "bearer": [
+      {
+        "key": "token",
+        "value": "{{accessToken}}",
+        "type": "string"
+      }
+    ]
+  },
+  "item": [
+    {
+      "name": "1️⃣ 认证接口",
+      "item": [
+        {
+          "name": "1.1 管理员登录 ⭐先执行这个",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "if (pm.response.code === 200) {",
+                  "    var jsonData = pm.response.json();",
+                  "    if (jsonData.data && jsonData.data.accessToken) {",
+                  "        pm.collectionVariables.set('accessToken', jsonData.data.accessToken);",
+                  "        console.log('✅ Token已自动保存，后续接口可直接调用');",
+                  "    }",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "auth": {
+              "type": "noauth"
+            },
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"username\": \"admin\",\n  \"password\": \"admin123\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/auth/login",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "auth", "login"]
+            },
+            "description": "【管理员登录】\n账号: admin\n密码: admin123\n\n登录成功后 Token 会自动保存到变量中"
+          }
+        },
+        {
+          "name": "1.2 普通用户登录",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "if (pm.response.code === 200) {",
+                  "    var jsonData = pm.response.json();",
+                  "    if (jsonData.data && jsonData.data.accessToken) {",
+                  "        pm.collectionVariables.set('accessToken', jsonData.data.accessToken);",
+                  "        console.log('✅ Token已自动保存');",
+                  "    }",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "auth": {
+              "type": "noauth"
+            },
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"username\": \"user1\",\n  \"password\": \"user123\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/auth/login",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "auth", "login"]
+            },
+            "description": "【普通用户登录】\n账号: user1\n密码: user123"
+          }
+        },
+        {
+          "name": "1.3 用户注册",
+          "request": {
+            "auth": {
+              "type": "noauth"
+            },
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"username\": \"newuser\",\n  \"password\": \"123456\",\n  \"confirmPassword\": \"123456\",\n  \"email\": \"newuser@example.com\",\n  \"phone\": \"13900139000\",\n  \"realName\": \"新用户\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/auth/register",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "auth", "register"]
+            },
+            "description": "注册新用户账号"
+          }
+        },
+        {
+          "name": "1.4 退出登录",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/auth/logout",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "auth", "logout"]
+            },
+            "description": "退出登录，清除Token"
+          }
+        }
+      ]
+    },
+    {
+      "name": "2️⃣ 图书接口",
+      "item": [
+        {
+          "name": "2.1 获取图书列表",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/books?pageNum=1&pageSize=10",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "books"],
+              "query": [
+                {
+                  "key": "pageNum",
+                  "value": "1",
+                  "description": "页码"
+                },
+                {
+                  "key": "pageSize",
+                  "value": "10",
+                  "description": "每页数量"
+                },
+                {
+                  "key": "keyword",
+                  "value": "",
+                  "description": "搜索关键词",
+                  "disabled": true
+                },
+                {
+                  "key": "categoryId",
+                  "value": "",
+                  "description": "分类ID",
+                  "disabled": true
+                }
+              ]
+            },
+            "description": "获取图书列表，支持分页和搜索"
+          }
+        },
+        {
+          "name": "2.2 获取图书详情",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/books/16",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "books", "16"]
+            },
+            "description": "根据ID获取图书详情\n可以改变路径中的数字来查看不同图书"
+          }
+        },
+        {
+          "name": "2.3 获取分类列表",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/books/categories",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "books", "categories"]
+            },
+            "description": "获取所有图书分类"
+          }
+        },
+        {
+          "name": "2.4 添加图书 [管理员]",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"isbn\": \"978-7-999-00001-1\",\n  \"title\": \"测试图书\",\n  \"author\": \"测试作者\",\n  \"publisher\": \"测试出版社\",\n  \"publishDate\": \"2024-01-01\",\n  \"categoryId\": 6,\n  \"price\": 59.00,\n  \"totalStock\": 10,\n  \"description\": \"这是一本测试图书\",\n  \"status\": 1\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/books",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "books"]
+            },
+            "description": "添加新图书（需要管理员权限）"
+          }
+        },
+        {
+          "name": "2.5 修改图书 [管理员]",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"isbn\": \"978-7-999-00001-1\",\n  \"title\": \"测试图书-已修改\",\n  \"author\": \"测试作者\",\n  \"publisher\": \"测试出版社\",\n  \"publishDate\": \"2024-01-01\",\n  \"categoryId\": 6,\n  \"price\": 69.00,\n  \"totalStock\": 15,\n  \"description\": \"这是一本测试图书（已修改）\",\n  \"status\": 1\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/books/16",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "books", "16"]
+            },
+            "description": "修改图书信息（需要管理员权限）"
+          }
+        },
+        {
+          "name": "2.6 删除图书 [管理员]",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/books/99",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "books", "99"]
+            },
+            "description": "删除图书（需要管理员权限）\n注意：有借阅记录的图书无法删除"
+          }
+        }
+      ]
+    },
+    {
+      "name": "3️⃣ 借阅接口",
+      "item": [
+        {
+          "name": "3.1 借阅图书",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"bookId\": 17,\n  \"quantity\": 1,\n  \"borrowDays\": 30\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/borrow",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "borrow"]
+            },
+            "description": "借阅图书\n- bookId: 图书ID\n- quantity: 借阅数量\n- borrowDays: 借阅天数（7/14/30/60或自定义）"
+          }
+        },
+        {
+          "name": "3.2 查看我的借阅",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/borrow/my?pageNum=1&pageSize=10",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "borrow", "my"],
+              "query": [
+                {
+                  "key": "pageNum",
+                  "value": "1"
+                },
+                {
+                  "key": "pageSize",
+                  "value": "10"
+                },
+                {
+                  "key": "status",
+                  "value": "0",
+                  "description": "状态：0借阅中，1已归还，2已逾期",
+                  "disabled": true
+                }
+              ]
+            },
+            "description": "查看当前用户的借阅记录"
+          }
+        },
+        {
+          "name": "3.3 归还图书",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"borrowId\": 1\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/return",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "return"]
+            },
+            "description": "归还图书\n- borrowId: 借阅记录ID"
+          }
+        },
+        {
+          "name": "3.4 续借图书",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"borrowId\": 1,\n  \"renewDays\": 14\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/renew",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "renew"]
+            },
+            "description": "续借图书\n- borrowId: 借阅记录ID\n- renewDays: 续借天数"
+          }
+        },
+        {
+          "name": "3.5 获取所有借阅记录 [管理员]",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/borrow?pageNum=1&pageSize=10",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "borrow"],
+              "query": [
+                {
+                  "key": "pageNum",
+                  "value": "1"
+                },
+                {
+                  "key": "pageSize",
+                  "value": "10"
+                },
+                {
+                  "key": "userId",
+                  "value": "",
+                  "description": "用户ID",
+                  "disabled": true
+                },
+                {
+                  "key": "status",
+                  "value": "",
+                  "description": "状态",
+                  "disabled": true
+                }
+              ]
+            },
+            "description": "获取所有用户的借阅记录（需要管理员权限）"
+          }
+        }
+      ]
+    },
+    {
+      "name": "4️⃣ 用户管理 [管理员]",
+      "item": [
+        {
+          "name": "4.1 获取用户列表",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/users?pageNum=1&pageSize=10",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "users"],
+              "query": [
+                {
+                  "key": "pageNum",
+                  "value": "1"
+                },
+                {
+                  "key": "pageSize",
+                  "value": "10"
+                },
+                {
+                  "key": "keyword",
+                  "value": "",
+                  "description": "搜索关键词",
+                  "disabled": true
+                }
+              ]
+            },
+            "description": "获取用户列表（需要管理员权限）"
+          }
+        },
+        {
+          "name": "4.2 获取用户详情",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/users/2",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "users", "2"]
+            },
+            "description": "根据ID获取用户详情"
+          }
+        },
+        {
+          "name": "4.3 重置用户密码",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"newPassword\": \"newpass123\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/users/2/password",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "users", "2", "password"]
+            },
+            "description": "重置指定用户的密码（需要管理员权限）"
+          }
+        },
+        {
+          "name": "4.4 修改用户角色",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"role\": \"ADMIN\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/users/2/role",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "users", "2", "role"]
+            },
+            "description": "修改用户角色（需要管理员权限）\n- role: USER 或 ADMIN"
+          }
+        }
+      ]
+    },
+    {
+      "name": "5️⃣ 健康检查",
+      "item": [
+        {
+          "name": "5.1 网关健康检查",
+          "request": {
+            "auth": {
+              "type": "noauth"
+            },
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/actuator/health/ping",
+              "host": ["{{baseUrl}}"],
+              "path": ["actuator", "health", "ping"]
+            },
+            "description": "检查网关服务是否正常"
+          }
+        },
+        {
+          "name": "5.2 网关详细健康状态",
+          "request": {
+            "auth": {
+              "type": "noauth"
+            },
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/actuator/health",
+              "host": ["{{baseUrl}}"],
+              "path": ["actuator", "health"]
+            },
+            "description": "查看网关及各组件的详细健康状态"
+          }
+        }
+      ]
+    }
+  ]
+}

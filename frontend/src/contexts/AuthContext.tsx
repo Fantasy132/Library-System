@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
+import React, { createContext, useContext, useState, useEffect, ReactNode, useCallback, useMemo } from 'react';
 import { User } from '../types';
 import * as authApi from '../api/auth';
 import { message } from 'antd';
@@ -33,7 +33,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     setLoading(false);
   }, []);
 
-  const login = async (username: string, password: string) => {
+  const login = useCallback(async (username: string, password: string) => {
     try {
       const response = await authApi.login({ username, password });
       const { accessToken, refreshToken, user } = response.data;
@@ -50,9 +50,9 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       // 错误已由拦截器处理
       throw error;
     }
-  };
+  }, []);
 
-  const logout = async () => {
+  const logout = useCallback(async () => {
     try {
       await authApi.logout();
     } catch (error) {
@@ -65,14 +65,22 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       setUser(null);
       message.success('已退出登录');
     }
-  };
+  }, []);
 
-  const isAdmin = () => {
+  const isAdmin = useCallback(() => {
     return user?.role === 'ADMIN';
-  };
+  }, [user]);
+
+  const value = useMemo(() => ({
+    user,
+    loading,
+    login,
+    logout,
+    isAdmin
+  }), [user, loading, login, logout, isAdmin]);
 
   return (
-    <AuthContext.Provider value={{ user, loading, login, logout, isAdmin }}>
+    <AuthContext.Provider value={value}>
       {children}
     </AuthContext.Provider>
   );

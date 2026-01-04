@@ -83,12 +83,6 @@ const Login: React.FC = () => {
                   登录
                 </Button>
               </Form.Item>
-
-              <div className="login-tips">
-                <p>测试账号：</p>
-                <p>管理员 - 用户名: admin, 密码: admin123</p>
-                <p>普通用户 - 用户名: user1, 密码: user123</p>
-              </div>
             </Form>
           </TabPane>
 

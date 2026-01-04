@@ -60,35 +60,27 @@ const MainLayout: React.FC = () => {
         <div className="user-info">
           <Dropdown menu={{ items: userMenuItems }} placement="bottomRight">
             <Space style={{ cursor: 'pointer' }}>
-              <Avatar icon={<UserOutlined />} />
-              <span style={{ color: '#fff' }}>
+              <Avatar icon={<UserOutlined />} style={{ backgroundColor: '#4F46E5' }} />
+              <span className="user-name">
                 {user?.realName || user?.username}
-                {isAdmin() && <span style={{ marginLeft: 8 }}>(管理员)</span>}
+                {isAdmin() && <span style={{ marginLeft: 8, fontSize: '12px', opacity: 0.8 }}>(管理员)</span>}
               </span>
             </Space>
           </Dropdown>
         </div>
       </Header>
       <Layout>
-        <Sider width={200} className="site-layout-background">
+        <Sider width={220} className="site-layout-background">
           <Menu
             mode="inline"
             selectedKeys={[location.pathname]}
-            style={{ height: '100%', borderRight: 0 }}
+            style={{ height: '100%', borderRight: 0, padding: '16px 0' }}
             items={menuItems}
             onClick={({ key }) => navigate(key)}
           />
         </Sider>
-        <Layout style={{ padding: '24px' }}>
-          <Content
-            className="site-layout-background"
-            style={{
-              padding: 24,
-              margin: 0,
-              minHeight: 280,
-              background: '#fff',
-            }}
-          >
+        <Layout style={{ padding: '0' }}>
+          <Content className="site-layout-content">
             <Outlet />
           </Content>
         </Layout>

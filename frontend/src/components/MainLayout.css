@@ -2,20 +2,72 @@
   display: flex;
   justify-content: space-between;
   align-items: center;
-  background: #001529;
+  background: #ffffff !important; /* 改为白色背景 */
   padding: 0 24px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+  z-index: 10;
+  position: relative;
 }
 
 .logo {
-  color: #fff;
-  font-size: 20px;
-  font-weight: bold;
+  color: #4F46E5; /* 使用主色调 */
+  font-size: 22px;
+  font-weight: 800;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.logo::before {
+  content: '📚'; /* 添加一个简单的图标 */
+  font-size: 24px;
 }
 
 .user-info {
-  color: #fff;
+  color: #333;
+}
+
+.user-info .ant-space {
+  padding: 4px 12px;
+  border-radius: 20px;
+  transition: background-color 0.3s;
+}
+
+.user-info .ant-space:hover {
+  background-color: rgba(0, 0, 0, 0.03);
+}
+
+.user-info span {
+  color: #333 !important;
+  font-weight: 500;
 }
 
 .site-layout-background {
   background: #fff;
+}
+
+/* 侧边栏样式优化 */
+.ant-layout-sider {
+  background: #fff !important;
+  box-shadow: 2px 0 8px rgba(0, 0, 0, 0.02);
+}
+
+.ant-menu-item-selected {
+  background-color: #eef2ff !important; /* 浅靛蓝色背景 */
+  color: #4F46E5 !important;
+  font-weight: 600;
+}
+
+.ant-menu-item::after {
+  border-right: 3px solid #4F46E5 !important;
+}
+
+/* 内容区域卡片化 */
+.site-layout-content {
+  margin: 24px;
+  padding: 24px;
+  background: #fff;
+  border-radius: 8px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+  min-height: 280px;
 }

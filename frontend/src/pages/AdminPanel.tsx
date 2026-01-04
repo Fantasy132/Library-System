@@ -15,12 +15,13 @@ import {
   Card,
   Popconfirm,
 } from 'antd';
-import { PlusOutlined, EditOutlined, DeleteOutlined, KeyOutlined, UserSwitchOutlined } from '@ant-design/icons';
+import { PlusOutlined, EditOutlined, DeleteOutlined, KeyOutlined, UserSwitchOutlined, StopOutlined, CheckCircleOutlined } from '@ant-design/icons';
 import type { ColumnsType } from 'antd/es/table';
 import { Book, BookRequest, BorrowRecord, Category, User } from '../types';
 import * as bookApi from '../api/book';
 import * as borrowApi from '../api/borrow';
 import * as authApi from '../api/auth';
+import { useAuth } from '../contexts/AuthContext';
 import dayjs from 'dayjs';
 
 const { TabPane } = Tabs;
@@ -39,6 +40,7 @@ const parseDate = (date: string | number[] | undefined | null): dayjs.Dayjs | nu
 };
 
 const AdminPanel: React.FC = () => {
+  const { user: currentUser } = useAuth(); // 获取当前登录用户
   const [activeTab, setActiveTab] = useState('books');
   const [books, setBooks] = useState<Book[]>([]);
   const [borrows, setBorrows] = useState<BorrowRecord[]>([]);
@@ -373,7 +375,8 @@ const AdminPanel: React.FC = () => {
   const handleStatusChange = async (user: User, newStatus: number) => {
     try {
       await authApi.updateUserStatus(user.id, newStatus);
-      message.success('状态修改成功');
+      const statusText = newStatus === 1 ? '启用' : '禁用';
+      message.success(`用户已${statusText}`);
       fetchUsers();
     } catch (error) {
       // 错误已由拦截器处理
@@ -434,36 +437,68 @@ const AdminPanel: React.FC = () => {
       title: '状态',
       dataIndex: 'status',
       key: 'status',
-      width: 100,
-      render: (status, record) => (
-        <Popconfirm
-          title={`确定要${status === 1 ? '禁用' : '启用'}该用户吗？`}
-          onConfirm={() => handleStatusChange(record, status === 1 ? 0 : 1)}
-          okText="确定"
-          cancelText="取消"
-        >
-          <Tag color={status === 1 ? 'green' : 'red'} style={{ cursor: 'pointer' }}>
-            {status === 1 ? '正常' : '禁用'}
-          </Tag>
-        </Popconfirm>
+      width: 80,
+      render: (status) => (
+        <Tag color={status === 1 ? 'green' : 'red'}>
+          {status === 1 ? '正常' : '禁用'}
+        </Tag>
       ),
     },
     {
       title: '操作',
       key: 'action',
-      width: 120,
-      render: (_, record) => (
-        <Space>
-          <Button
-            type="link"
-            size="small"
-            icon={<KeyOutlined />}
-            onClick={() => handleResetPassword(record)}
-          >
-            重置密码
-          </Button>
-        </Space>
-      ),
+      width: 200,
+      render: (_, record) => {
+        const isCurrentUser = currentUser?.id === record.id;
+        
+        return (
+          <Space>
+            <Button
+              type="link"
+              size="small"
+              icon={<KeyOutlined />}
+              onClick={() => handleResetPassword(record)}
+            >
+              重置密码
+            </Button>
+            {!isCurrentUser && (
+              record.status === 1 ? (
+                <Popconfirm
+                  title="确定要禁用该用户吗？禁用后用户将无法登录系统"
+                  onConfirm={() => handleStatusChange(record, 0)}
+                  okText="确定"
+                  cancelText="取消"
+                >
+                  <Button
+                    type="link"
+                    size="small"
+                    danger
+                    icon={<StopOutlined />}
+                  >
+                    禁用
+                  </Button>
+                </Popconfirm>
+              ) : (
+                <Popconfirm
+                  title="确定要启用该用户吗？"
+                  onConfirm={() => handleStatusChange(record, 1)}
+                  okText="确定"
+                  cancelText="取消"
+                >
+                  <Button
+                    type="link"
+                    size="small"
+                    icon={<CheckCircleOutlined />}
+                    style={{ color: '#52c41a' }}
+                  >
+                    启用
+                  </Button>
+                </Popconfirm>
+              )
+            )}
+          </Space>
+        );
+      },
     },
   ];
 

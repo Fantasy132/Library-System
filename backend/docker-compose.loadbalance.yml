@@ -1,0 +1,88 @@
+version: '3.8'
+
+# 负载均衡测试配置 - 扩展服务
+services:
+  # Auth Service 实例2
+  auth-service-2:
+    build:
+      context: .
+      dockerfile: library-auth/Dockerfile
+    restart: unless-stopped
+    environment:
+      SPRING_PROFILES_ACTIVE: docker
+      NACOS_SERVER_ADDR: nacos:8848
+      DB_HOST: mysql
+      DB_PORT: 3306
+      DB_USERNAME: root
+      DB_PASSWORD: root123456
+      JWT_SECRET: LibrarySystemSecretKey2024ForJWTTokenGenerationAndValidation
+      TZ: Asia/Shanghai
+    volumes:
+      - auth-logs-2:/app/logs
+    networks:
+      - library-network
+    healthcheck:
+      test: ["CMD", "wget", "--spider", "-q", "http://localhost:8081/actuator/health/ping"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  # Auth Service 实例3
+  auth-service-3:
+    build:
+      context: .
+      dockerfile: library-auth/Dockerfile
+    restart: unless-stopped
+    environment:
+      SPRING_PROFILES_ACTIVE: docker
+      NACOS_SERVER_ADDR: nacos:8848
+      DB_HOST: mysql
+      DB_PORT: 3306
+      DB_USERNAME: root
+      DB_PASSWORD: root123456
+      JWT_SECRET: LibrarySystemSecretKey2024ForJWTTokenGenerationAndValidation
+      TZ: Asia/Shanghai
+    volumes:
+      - auth-logs-3:/app/logs
+    networks:
+      - library-network
+    healthcheck:
+      test: ["CMD", "wget", "--spider", "-q", "http://localhost:8081/actuator/health/ping"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  # Book Service 实例2
+  book-service-2:
+    build:
+      context: .
+      dockerfile: library-book/Dockerfile
+    restart: unless-stopped
+    environment:
+      SPRING_PROFILES_ACTIVE: docker
+      NACOS_SERVER_ADDR: nacos:8848
+      DB_HOST: mysql
+      DB_PORT: 3306
+      DB_USERNAME: root
+      DB_PASSWORD: root123456
+      JWT_SECRET: LibrarySystemSecretKey2024ForJWTTokenGenerationAndValidation
+      TZ: Asia/Shanghai
+    volumes:
+      - book-logs-2:/app/logs
+    networks:
+      - library-network
+    healthcheck:
+      test: ["CMD", "wget", "--spider", "-q", "http://localhost:8082/actuator/health/ping"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+networks:
+  library-network:
+    name: backend_library-network
+    external: true
+
+volumes:
+  auth-logs-2:
+  auth-logs-3:
+  book-logs-2:

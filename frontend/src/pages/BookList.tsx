@@ -46,8 +46,11 @@ const BookList: React.FC = () => {
 
   useEffect(() => {
     fetchBooks();
-    fetchCategories();
   }, [page, pageSize, keyword, categoryId]);
+
+  useEffect(() => {
+    fetchCategories();
+  }, []);
 
   // 获取当前用户已借阅的书籍
   useEffect(() => {
